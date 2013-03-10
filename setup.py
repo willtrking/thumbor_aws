@@ -11,6 +11,5 @@ setup(
 	zip_safe = False,
 	include_package_data = True,
 	packages=find_packages(),
-	requires=['dateutil','thumbor','boto'],
-	packages=['thumbar_aws']
+	requires=['python-dateutil','thumbor','boto']
 )

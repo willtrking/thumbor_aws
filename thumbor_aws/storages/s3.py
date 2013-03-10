@@ -34,7 +34,7 @@ class Storage(BaseStorage):
 
     def put(self, path, bytes):
         file_abspath = self.normalize_path(path)
-        logger.debug("[RESULT_STORAGE] putting s3 key at %s (%s)" % (file_abspath))
+        logger.debug("[RESULT_STORAGE] putting s3 key at %s" % (file_abspath))
 
         bucket = self.__get_s3_bucket()
         file_key = bucket.get_key(file_abspath)
