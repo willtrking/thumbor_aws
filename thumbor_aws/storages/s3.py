@@ -19,9 +19,13 @@ from dateutil.parser import parse as parse_ts
 
 class Storage(BaseStorage):
 
-    def __get_s3_connection(self):
-        return S3Connection(self.context.config.AWS_ACCESS_KEY,self.context.config.AWS_SECRET_KEY)
+    __connection = None
 
+    def __get_s3_connection(self):
+        if self.__connection is None:
+            self.__connection = S3Connection(self.context.config.AWS_ACCESS_KEY,self.context.config.AWS_SECRET_KEY)
+
+        return self.__connection
     def __get_s3_bucket(self):
         return Bucket(
             connection=self.__get_s3_connection(),
@@ -110,6 +114,13 @@ class Storage(BaseStorage):
 
         return file_key.read()
 
+    def exists(self, path):
+        bucket = self.__get_s3_bucket()
+        file_abspath = self.normalize_path(path)
+        file_key = bucket.get_key(file_abspath)
+        if not file_key:
+            return False
+        return True
 
     def normalize_path(self, path):
         digest = hashlib.sha1(path.encode('utf-8')).hexdigest()
