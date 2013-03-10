@@ -8,8 +8,8 @@ connection = None
 
 def _get_bucket(url):
 	#first item in URL
-	url.lstrip('/').split('/')
-	return url[0],"/".join(url[1:])
+	arr = url.lstrip('/').split('/')
+	return arr[0],"/".join(arr[1:])
 
 def _validate_bucket(context,bucket):
 	if not context.config.S3_ALLOWED_BUCKETS:
@@ -28,7 +28,7 @@ def load(context, url, callback):
 		bucket = context.config.S3_LOADER_BUCKET
 	else:
 		bucket,url = _get_bucket(url)
-		if not _validate_bucket(bucket):
+		if not _validate_bucket(context,bucket):
 			return callback(None)
 
 	if connection is None:
