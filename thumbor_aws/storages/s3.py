@@ -13,7 +13,6 @@ from thumbor.utils import logger
 
 from boto.s3.connection import S3Connection
 from boto.s3.bucket import Bucket
-from boto.s3.key import Key
 from dateutil.parser import parse as parse_ts
 
 
@@ -39,7 +38,8 @@ class Storage(BaseStorage):
         bucket = self.__get_s3_bucket()
         file_key = bucket.get_key(file_abspath)
         if not file_key:
-            file_key = Key(self.context.config.RESULT_STORAGE_BUCKET,file_abspath)
+            file_key = bucket.new_key(file_abspath)
+
         file_key.set_contents_from_string(bytes)
 
     def put_crypto(self, path):
@@ -56,7 +56,7 @@ class Storage(BaseStorage):
         bucket = self.__get_s3_bucket()
         file_key = bucket.get_key(crypto_path)
         if not file_key:
-            file_key = Key(self.context.config.RESULT_STORAGE_BUCKET,crypto_path)
+            file_key = bucket.new_key(file_abspath)
 
         file_key.set_contents_from_string(self.context.server.security_key)
 
@@ -70,7 +70,7 @@ class Storage(BaseStorage):
         bucket = self.__get_s3_bucket()
         file_key = bucket.get_key(path)
         if not file_key:
-            file_key = Key(self.context.config.RESULT_STORAGE_BUCKET,path)
+            file_key = bucket.new_key(file_abspath)
 
         file_key.set_contents_from_string(self.context.server.security_key)
 
