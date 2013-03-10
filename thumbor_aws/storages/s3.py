@@ -146,6 +146,7 @@ class Storage(BaseStorage):
         else:
             #If our key is bad just say we're expired
             return True
+            
     def remove(self, path):
         bucket = self.__get_s3_bucket()
 
