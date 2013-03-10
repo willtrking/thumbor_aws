@@ -5,6 +5,7 @@ import calendar
 from datetime import datetime, timedelta
 from uuid import uuid4
 import hashlib
+from json import loads, dumps
 
 from os.path import join, splitext
 
@@ -42,6 +43,8 @@ class Storage(BaseStorage):
 
         file_key.set_contents_from_string(bytes)
 
+        return path
+
     def put_crypto(self, path):
         if not self.context.config.STORES_CRYPTO_KEY_FOR_EACH_IMAGE:
             return
@@ -72,7 +75,7 @@ class Storage(BaseStorage):
         if not file_key:
             file_key = bucket.new_key(file_abspath)
 
-        file_key.set_contents_from_string(self.context.server.security_key)
+        file_key.set_contents_from_string(dumps(data))
 
         return file_abspath
 
@@ -112,10 +115,11 @@ class Storage(BaseStorage):
         if not file_key or self.is_expired(file_abspath):
             return None
 
-        return file_key.read()
+        return loads(file_key.read())
 
-    def exists(self, path):
-        bucket = self.__get_s3_bucket()
+    def exists(self, path,bucket = None):
+        if bucket is None:
+            bucket = self.__get_s3_bucket()
         file_abspath = self.normalize_path(path)
         file_key = bucket.get_key(file_abspath)
         if not file_key:
@@ -142,6 +146,13 @@ class Storage(BaseStorage):
         else:
             #If our key is bad just say we're expired
             return True
+    def remove(self, path):
+        bucket = self.__get_s3_bucket()
+
+        if not self.exists(path,bucket): return
+        if not bucket.delete_key(path):
+            return False
+        return True
 
     def utc_to_local(utc_dt):
         # get integer timestamp to avoid precision lost
