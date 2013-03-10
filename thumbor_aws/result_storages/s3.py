@@ -14,27 +14,26 @@ from dateutil.parser import parse as parse_ts
 
 class Storage(BaseStorage):
 
-   def __init__(self, context):
+    def __init__(self, context):
         BaseStorage.__init__(self, context)
         self.storage = self.__get_s3_bucket()
 
     def __get_s3_connection(self):
         return S3Connection(self.context.config.AWS_ACCESS_KEY,self.context.config.AWS_SECRET_KEY)
-
+        
     def __get_s3_bucket(self):
         return Bucket(
             connection=self.__get_s3_connection(),
-            name=self.context.config.STORAGE_BUCKET
+            name=self.context.config.RESULT_STORAGE_BUCKET
         )
 
     def put(self, bytes):
         file_abspath = self.normalize_path(self.context.request.url)
         logger.debug("[RESULT_STORAGE] putting s3 key at %s" % (file_abspath))
 
-        bucket = self.__get_s3_bucket()
-        file_key = bucket.get_key(file_abspath)
+        file_key = self.storage.get_key(file_abspath)
         if not file_key:
-            file_key = bucket.new_key(file_abspath)
+            file_key = self.storage.new_key(file_abspath)
 
         file_key.set_contents_from_string(bytes)
 
@@ -44,8 +43,7 @@ class Storage(BaseStorage):
 
         logger.debug("[RESULT_STORAGE] getting from s3 key %s" % file_abspath)
 
-        bucket = self.__get_s3_bucket()
-        file_key = bucket.get_key(file_abspath)
+        file_key = self.storage.get_key(file_abspath)
 
         if not file_key or self.is_expired(file_abspath):
             logger.debug("[RESULT_STORAGE] s3 key not found at %s" % file_abspath)
