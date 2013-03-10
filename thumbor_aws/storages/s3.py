@@ -1,13 +1,11 @@
 #coding: utf-8
 
-import os
 import calendar
 from datetime import datetime, timedelta
-from uuid import uuid4
 import hashlib
 from json import loads, dumps
 
-from os.path import join, splitext
+from os.path import splitext
 
 from thumbor.storages import BaseStorage
 from thumbor.utils import logger
@@ -26,15 +24,16 @@ class Storage(BaseStorage):
             self.__connection = S3Connection(self.context.config.AWS_ACCESS_KEY,self.context.config.AWS_SECRET_KEY)
 
         return self.__connection
+
     def __get_s3_bucket(self):
         return Bucket(
             connection=self.__get_s3_connection(),
-            name=self.context.config.RESULT_STORAGE_BUCKET
+            name=self.context.config.STORAGE_BUCKET
         )
 
     def put(self, path, bytes):
         file_abspath = self.normalize_path(path)
-        logger.debug("[RESULT_STORAGE] putting s3 key at %s" % (file_abspath))
+        logger.debug("[STORAGE] putting s3 key at %s" % (file_abspath))
 
         bucket = self.__get_s3_bucket()
         file_key = bucket.get_key(file_abspath)
@@ -94,13 +93,13 @@ class Storage(BaseStorage):
 
         file_abspath = self.normalize_path(path)
 
-        logger.debug("[RESULT_STORAGE] getting from s3 key %s" % file_abspath)
+        logger.debug("[STORAGE] getting from s3 key %s" % file_abspath)
 
         bucket = self.__get_s3_bucket()
         file_key = bucket.get_key(file_abspath)
 
         if not file_key or self.is_expired(file_abspath):
-            logger.debug("[RESULT_STORAGE] s3 key not found at %s" % file_abspath)
+            logger.debug("[STORAGE] s3 key not found at %s" % file_abspath)
             return None
 
         return file_key.read()
@@ -128,7 +127,7 @@ class Storage(BaseStorage):
 
     def normalize_path(self, path):
         digest = hashlib.sha1(path.encode('utf-8')).hexdigest()
-        return join(self.context.config.AWS_STORAGE_ROOT_PATH.rstrip('/'), digest[:2] + '/' + digest[2:])
+        return "/storage/"+digest
 
     def is_expired(self, key):
         if key:
@@ -146,7 +145,7 @@ class Storage(BaseStorage):
         else:
             #If our key is bad just say we're expired
             return True
-            
+
     def remove(self, path):
         bucket = self.__get_s3_bucket()
 
