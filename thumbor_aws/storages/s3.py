@@ -17,13 +17,13 @@ from dateutil.parser import parse as parse_ts
 
 class Storage(BaseStorage):
 
-    __connection = None
+    
+    def __init__(self, context):
+        BaseStorage.__init__(self, context)
+        self.storage = self.__get_s3_bucket()
 
     def __get_s3_connection(self):
-        if self.__connection is None:
-            self.__connection = S3Connection(self.context.config.AWS_ACCESS_KEY,self.context.config.AWS_SECRET_KEY)
-
-        return self.__connection
+        return S3Connection(self.context.config.AWS_ACCESS_KEY,self.context.config.AWS_SECRET_KEY)
 
     def __get_s3_bucket(self):
         return Bucket(
@@ -35,10 +35,9 @@ class Storage(BaseStorage):
         file_abspath = self.normalize_path(path)
         logger.debug("[STORAGE] putting s3 key at %s" % (file_abspath))
 
-        bucket = self.__get_s3_bucket()
-        file_key = bucket.get_key(file_abspath)
+        file_key = self.storage.get_key(file_abspath)
         if not file_key:
-            file_key = bucket.new_key(file_abspath)
+            file_key = self.storage.new_key(file_abspath)
 
         file_key.set_contents_from_string(bytes)
 
@@ -55,10 +54,9 @@ class Storage(BaseStorage):
 
         crypto_path = '%s.txt' % splitext(file_abspath)[0]
 
-        bucket = self.__get_s3_bucket()
-        file_key = bucket.get_key(crypto_path)
+        file_key = self.storage.get_key(crypto_path)
         if not file_key:
-            file_key = bucket.new_key(crypto_path)
+            file_key = self.storage.new_key(crypto_path)
 
         file_key.set_contents_from_string(self.context.server.security_key)
 
@@ -69,10 +67,9 @@ class Storage(BaseStorage):
 
         path = '%s.detectors.txt' % splitext(file_abspath)[0]
         
-        bucket = self.__get_s3_bucket()
-        file_key = bucket.get_key(path)
+        file_key = self.storage.get_key(path)
         if not file_key:
-            file_key = bucket.new_key(path)
+            file_key = self.storage.new_key(path)
 
         file_key.set_contents_from_string(dumps(data))
 
@@ -82,8 +79,7 @@ class Storage(BaseStorage):
         file_abspath = self.normalize_path(path)
         crypto_file = "%s.txt" % (splitext(file_abspath)[0])
 
-        bucket = self.__get_s3_bucket()
-        file_key = bucket.get_key(crypto_path)
+        file_key = self.storage.get_key(crypto_path)
         if not file_key:
             return None
 
@@ -95,8 +91,7 @@ class Storage(BaseStorage):
 
         logger.debug("[STORAGE] getting from s3 key %s" % file_abspath)
 
-        bucket = self.__get_s3_bucket()
-        file_key = bucket.get_key(file_abspath)
+        file_key = self.storage.get_key(file_abspath)
 
         if not file_key or self.is_expired(file_abspath):
             logger.debug("[STORAGE] s3 key not found at %s" % file_abspath)
@@ -108,26 +103,23 @@ class Storage(BaseStorage):
         file_abspath = self.normalize_path(path)
         path = '%s.detectors.txt' % splitext(file_abspath)[0]
         
-        bucket = self.__get_s3_bucket()
-        file_key = bucket.get_key(path)
+        file_key = self.storage.get_key(path)
 
         if not file_key or self.is_expired(path):
             return None
 
         return loads(file_key.read())
 
-    def exists(self, path,bucket = None):
-        if bucket is None:
-            bucket = self.__get_s3_bucket()
+    def exists(self, path):
         file_abspath = self.normalize_path(path)
-        file_key = bucket.get_key(file_abspath)
+        file_key = self.storage.get_key(file_abspath)
         if not file_key:
             return False
         return True
 
     def normalize_path(self, path):
         digest = hashlib.sha1(path.encode('utf-8')).hexdigest()
-        return "/storage/"+digest
+        return "storage/"+digest
 
     def is_expired(self, key):
         if key:
@@ -147,10 +139,11 @@ class Storage(BaseStorage):
             return True
 
     def remove(self, path):
-        bucket = self.__get_s3_bucket()
 
-        if not self.exists(path,bucket): return
-        if not bucket.delete_key(path):
+        if not self.exists(path):
+            return
+
+        if not self.storage.delete_key(path):
             return False
         return True
 

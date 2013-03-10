@@ -14,18 +14,17 @@ from dateutil.parser import parse as parse_ts
 
 class Storage(BaseStorage):
 
-    __connection = None
+   def __init__(self, context):
+        BaseStorage.__init__(self, context)
+        self.storage = self.__get_s3_bucket()
 
     def __get_s3_connection(self):
-        if self.__connection is None:
-            self.__connection = S3Connection(self.context.config.AWS_ACCESS_KEY,self.context.config.AWS_SECRET_KEY)
+        return S3Connection(self.context.config.AWS_ACCESS_KEY,self.context.config.AWS_SECRET_KEY)
 
-        return self.__connection
-        
     def __get_s3_bucket(self):
         return Bucket(
             connection=self.__get_s3_connection(),
-            name=self.context.config.RESULT_STORAGE_BUCKET
+            name=self.context.config.STORAGE_BUCKET
         )
 
     def put(self, bytes):
@@ -56,7 +55,7 @@ class Storage(BaseStorage):
 
     def normalize_path(self, path):
         digest = hashlib.sha1(path.encode('utf-8')).hexdigest()
-        return "/result_storage/"+digest
+        return "result_storage/"+digest
 
     def is_expired(self, key):
         if key:
