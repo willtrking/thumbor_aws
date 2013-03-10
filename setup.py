@@ -11,5 +11,5 @@ setup(
 	zip_safe = False,
 	include_package_data = True,
 	packages=find_packages(),
-	requires=['python-dateutil','thumbor','boto']
+	requires=['dateutil','thumbor','boto']
 )
