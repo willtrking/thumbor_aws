@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 import hashlib
 
-from os.path import join
+from os.path import join, splitext
 
 from thumbor.storages import BaseStorage
 from thumbor.utils import logger
