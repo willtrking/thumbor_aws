@@ -59,11 +59,11 @@ class Storage(BaseStorage):
         bucket = self.__get_s3_bucket()
         file_key = bucket.get_key(crypto_path)
         if not file_key:
-            file_key = bucket.new_key(file_abspath)
+            file_key = bucket.new_key(crypto_path)
 
         file_key.set_contents_from_string(self.context.server.security_key)
 
-        return file_abspath
+        return crypto_path
 
     def put_detector_data(self, path, data):
         file_abspath = self.normalize_path(path)
@@ -73,11 +73,11 @@ class Storage(BaseStorage):
         bucket = self.__get_s3_bucket()
         file_key = bucket.get_key(path)
         if not file_key:
-            file_key = bucket.new_key(file_abspath)
+            file_key = bucket.new_key(path)
 
         file_key.set_contents_from_string(dumps(data))
 
-        return file_abspath
+        return path
 
     def get_crypto(self, path):
         file_abspath = self.normalize_path(path)
@@ -110,9 +110,9 @@ class Storage(BaseStorage):
         path = '%s.detectors.txt' % splitext(file_abspath)[0]
         
         bucket = self.__get_s3_bucket()
-        file_key = bucket.get_key(file_abspath)
+        file_key = bucket.get_key(path)
 
-        if not file_key or self.is_expired(file_abspath):
+        if not file_key or self.is_expired(path):
             return None
 
         return loads(file_key.read())
