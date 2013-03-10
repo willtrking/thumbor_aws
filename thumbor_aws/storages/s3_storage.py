@@ -12,6 +12,7 @@ from thumbor.utils import logger
 
 from boto.s3.connection import S3Connection
 from boto.s3.bucket import Bucket
+from boto.s3.key import Key
 from dateutil.parser import parse as parse_ts
 
 
@@ -23,7 +24,10 @@ class Storage(BaseStorage):
         self.storage = self.__get_s3_bucket()
 
     def __get_s3_connection(self):
-        return S3Connection(self.context.config.AWS_ACCESS_KEY,self.context.config.AWS_SECRET_KEY)
+        return S3Connection(
+            self.context.config.AWS_ACCESS_KEY,
+            self.context.config.AWS_SECRET_KEY
+        )
 
     def __get_s3_bucket(self):
         return Bucket(
@@ -33,11 +37,9 @@ class Storage(BaseStorage):
 
     def put(self, path, bytes):
         file_abspath = self.normalize_path(path)
-        logger.debug("[STORAGE] putting s3 key at %s" % (file_abspath))
 
-        file_key = self.storage.get_key(file_abspath)
-        if not file_key:
-            file_key = self.storage.new_key(file_abspath)
+        file_key=Key(self.storage)
+        file_key.key = file_abspath
 
         file_key.set_contents_from_string(bytes)
 
@@ -54,9 +56,8 @@ class Storage(BaseStorage):
 
         crypto_path = '%s.txt' % splitext(file_abspath)[0]
 
-        file_key = self.storage.get_key(crypto_path)
-        if not file_key:
-            file_key = self.storage.new_key(crypto_path)
+        file_key=Key(self.storage)
+        file_key.key = crypto_path
 
         file_key.set_contents_from_string(self.context.server.security_key)
 
@@ -67,9 +68,8 @@ class Storage(BaseStorage):
 
         path = '%s.detectors.txt' % splitext(file_abspath)[0]
         
-        file_key = self.storage.get_key(path)
-        if not file_key:
-            file_key = self.storage.new_key(path)
+        file_key=Key(self.storage)
+        file_key.key = path
 
         file_key.set_contents_from_string(dumps(data))
 
@@ -88,8 +88,6 @@ class Storage(BaseStorage):
     def get(self, path):
 
         file_abspath = self.normalize_path(path)
-
-        logger.debug("[STORAGE] getting from s3 key %s" % file_abspath)
 
         file_key = self.storage.get_key(file_abspath)
 
@@ -123,16 +121,13 @@ class Storage(BaseStorage):
 
     def is_expired(self, key):
         if key:
-
             expire_in_seconds = self.context.config.get('RESULT_STORAGE_EXPIRATION_SECONDS', None)
 
             #Never expire
             if expire_in_seconds is None or expire_in_seconds == 0:
                 return False
 
-            
             timediff = datetime.now() - self.utc_to_local(parse_ts(key.last_modified))
-
             return timediff.seconds > expire_in_seconds
         else:
             #If our key is bad just say we're expired
