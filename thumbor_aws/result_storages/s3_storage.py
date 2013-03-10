@@ -49,7 +49,7 @@ class Storage(BaseStorage):
 
     def normalize_path(self, path):
         digest = hashlib.sha1(path.encode('utf-8')).hexdigest()
-        return "result_storage/"+digest
+        return "thumbor/result_storage/"+digest
 
     def is_expired(self, key):
         if key:

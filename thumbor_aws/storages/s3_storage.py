@@ -117,7 +117,7 @@ class Storage(BaseStorage):
 
     def normalize_path(self, path):
         digest = hashlib.sha1(path.encode('utf-8')).hexdigest()
-        return "storage/"+digest
+        return "thumbor/storage/"+digest
 
     def is_expired(self, key):
         if key:
