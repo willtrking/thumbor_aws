@@ -25,7 +25,7 @@ class Storage(BaseStorage):
     def __get_s3_bucket(self):
         return Bucket(
             connection=self.__get_s3_connection(),
-            name=self.context.config.STORAGE_BUCKET
+            name=self.context.config.RESULT_STORAGE_BUCKET
         )
 
     def put(self, bytes):
