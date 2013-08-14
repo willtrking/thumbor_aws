@@ -7,9 +7,15 @@ from boto.s3.key import Key
 connection = None
 
 def _get_bucket(url):
-	#first item in URL
-	arr = url.lstrip('/').split('/')
-	return arr[0],"/".join(arr[1:])
+    """
+    Returns a tuple containing bucket name and bucket path.
+    url: A string of the format /bucket.name/file/path/in/bucket
+    """
+
+    url_by_piece = url.lstrip("/").split("/")
+    bucket_name = url_by_piece[0]
+    bucket_path = "/".join(url_by_piece[1:])
+    return bucket_name, bucket_path
 
 def _validate_bucket(context,bucket):
 	if not context.config.S3_ALLOWED_BUCKETS:
