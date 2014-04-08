@@ -91,7 +91,7 @@ class Storage(BaseStorage):
 
         file_key = self.storage.get_key(file_abspath)
 
-        if not file_key or self.is_expired(file_abspath):
+        if not file_key or self.is_expired(file_key):
             logger.debug("[STORAGE] s3 key not found at %s" % file_abspath)
             return None
 
@@ -142,7 +142,7 @@ class Storage(BaseStorage):
             return False
         return True
 
-    def utc_to_local(utc_dt):
+    def utc_to_local(self, utc_dt):
         # get integer timestamp to avoid precision lost
         timestamp = calendar.timegm(utc_dt.timetuple())
         local_dt = datetime.fromtimestamp(timestamp)
