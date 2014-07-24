@@ -35,7 +35,11 @@ class Storage(BaseStorage):
         file_abspath = self.normalize_path(self.context.request.url)
         file_key=Key(self.storage)
         file_key.key = file_abspath
-        file_key.set_contents_from_string(bytes)
+
+        file_key.set_contents_from_string(bytes, 
+            encrypt_key = self.context.config.get('S3_STORAGE_SSE', default=False),
+            reduced_redundancy = self.context.config.get('S3_STORAGE_RRS', default=False)
+        )
 
     def get(self):
         file_abspath = self.normalize_path(self.context.request.url)
