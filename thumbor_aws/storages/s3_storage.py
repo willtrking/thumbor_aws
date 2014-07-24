@@ -41,7 +41,10 @@ class Storage(BaseStorage):
         file_key=Key(self.storage)
         file_key.key = file_abspath
 
-        file_key.set_contents_from_string(bytes)
+        file_key.set_contents_from_string(bytes, 
+            encrypt_key = self.context.config.get('S3_STORAGE_SSE', default=False),
+            reduced_redundancy = self.context.config.get('S3_STORAGE_RRS', default=False)
+        )
 
         return path
 
@@ -59,7 +62,10 @@ class Storage(BaseStorage):
         file_key=Key(self.storage)
         file_key.key = crypto_path
 
-        file_key.set_contents_from_string(self.context.server.security_key)
+        file_key.set_contents_from_string(self.context.server.security_key, 
+            encrypt_key = self.context.config.get('S3_STORAGE_SSE', default=False),
+            reduced_redundancy = self.context.config.get('S3_STORAGE_RRS', default=False)
+        )
 
         return crypto_path
 
@@ -71,7 +77,10 @@ class Storage(BaseStorage):
         file_key=Key(self.storage)
         file_key.key = path
 
-        file_key.set_contents_from_string(dumps(data))
+        file_key.set_contents_from_string(dumps(data),
+            encrypt_key = self.context.config.get('S3_STORAGE_SSE', default=False),
+            reduced_redundancy = self.context.config.get('S3_STORAGE_RRS', default=False)
+        )
 
         return path
 
