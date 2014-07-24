@@ -77,7 +77,7 @@ class Storage(BaseStorage):
 
     def get_crypto(self, path):
         file_abspath = self.normalize_path(path)
-        crypto_file = "%s.txt" % (splitext(file_abspath)[0])
+        crypto_path = "%s.txt" % (splitext(file_abspath)[0])
 
         file_key = self.storage.get_key(crypto_path)
         if not file_key:
