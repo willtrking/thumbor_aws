@@ -15,6 +15,11 @@ from dateutil.parser import parse as parse_ts
 
 class Storage(BaseStorage):
 
+    @property
+    def is_auto_webp(self):
+        return self.context.config.AUTO_WEBP and self.context.request.accepts_webp
+
+
     def __init__(self, context):
         BaseStorage.__init__(self, context)
         self.storage = self.__get_s3_bucket()
@@ -52,7 +57,10 @@ class Storage(BaseStorage):
         return file_key.read()
 
     def normalize_path(self, path):
-        digest = hashlib.sha1(path.encode('utf-8')).hexdigest()
+        path_segments = [path]
+        if self.is_auto_webp:
+            path_segments.append("webp")
+        digest = hashlib.sha1(".".join(path_segments).encode('utf-8')).hexdigest()
         return "thumbor/result_storage/"+digest
 
     def is_expired(self, key):
