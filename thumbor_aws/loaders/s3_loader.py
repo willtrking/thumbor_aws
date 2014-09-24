@@ -3,6 +3,7 @@
 from boto.s3.connection import S3Connection
 from boto.s3.bucket import Bucket
 from boto.s3.key import Key
+import urllib2
 
 connection = None
 
@@ -40,7 +41,9 @@ def _establish_connection(context_config):
 
     return conn
 
+
 def load(context, url, callback):
+    url = urllib2.unquote(url)
     if context.config.S3_LOADER_BUCKET:
         bucket = context.config.S3_LOADER_BUCKET
     else:
