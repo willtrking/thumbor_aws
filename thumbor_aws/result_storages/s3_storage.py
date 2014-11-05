@@ -62,7 +62,7 @@ class Storage(BaseStorage):
         if self.is_auto_webp:
             path_segments.append("webp")
         digest = hashlib.sha1(".".join(path_segments).encode('utf-8')).hexdigest()
-        return root_path+digest
+        return os.path.join(root_path, digest)
 
     def is_expired(self, key):
         if key:
