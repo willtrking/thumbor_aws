@@ -3,6 +3,7 @@
 import calendar
 from datetime import datetime, timedelta
 import hashlib
+import os
 
 from thumbor.result_storages import BaseStorage
 from thumbor.utils import logger
