@@ -12,24 +12,27 @@ from boto.s3.bucket import Bucket
 from boto.s3.key import Key
 from dateutil.parser import parse as parse_ts
 
-
 class Storage(BaseStorage):
+
+    connection = None
 
     @property
     def is_auto_webp(self):
         return self.context.config.AUTO_WEBP and self.context.request.accepts_webp
-
 
     def __init__(self, context):
         BaseStorage.__init__(self, context)
         self.storage = self.__get_s3_bucket()
 
     def __get_s3_connection(self):
-        return S3Connection(
-            self.context.config.AWS_ACCESS_KEY,
-            self.context.config.AWS_SECRET_KEY
-        )
-        
+        if self.__class__.connection is None:
+          self.__class__.connection = S3Connection(
+              self.context.config.AWS_ACCESS_KEY,
+              self.context.config.AWS_SECRET_KEY
+          )
+
+        return self.__class__.connection
+
     def __get_s3_bucket(self):
         return Bucket(
             connection=self.__get_s3_connection(),
