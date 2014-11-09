@@ -3,6 +3,7 @@
 import calendar
 from datetime import datetime, timedelta
 import hashlib
+import os
 
 from thumbor.result_storages import BaseStorage
 from thumbor.utils import logger
@@ -60,11 +61,12 @@ class Storage(BaseStorage):
         return file_key.read()
 
     def normalize_path(self, path):
+        root_path = self.context.config.get('RESULT_STORAGE_AWS_STORAGE_ROOT_PATH', default='thumbor/result_storage/')
         path_segments = [path]
         if self.is_auto_webp:
             path_segments.append("webp")
         digest = hashlib.sha1(".".join(path_segments).encode('utf-8')).hexdigest()
-        return "thumbor/result_storage/"+digest
+        return os.path.join(root_path, digest)
 
     def is_expired(self, key):
         if key:
