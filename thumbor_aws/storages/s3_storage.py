@@ -10,28 +10,22 @@ from os.path import splitext
 from thumbor.storages import BaseStorage
 from thumbor.utils import logger
 
-from boto.s3.connection import S3Connection
 from boto.s3.bucket import Bucket
 from boto.s3.key import Key
 from dateutil.parser import parse as parse_ts
 
+import thumbor_aws.connection
 
 class Storage(BaseStorage):
 
-    
+
     def __init__(self, context):
         BaseStorage.__init__(self, context)
         self.storage = self.__get_s3_bucket()
 
-    def __get_s3_connection(self):
-        return S3Connection(
-            self.context.config.AWS_ACCESS_KEY,
-            self.context.config.AWS_SECRET_KEY
-        )
-
     def __get_s3_bucket(self):
         return Bucket(
-            connection=self.__get_s3_connection(),
+            conn=thumbor_aws.connection.get_connection(context),
             name=self.context.config.STORAGE_BUCKET
         )
 
@@ -41,7 +35,7 @@ class Storage(BaseStorage):
         file_key=Key(self.storage)
         file_key.key = file_abspath
 
-        file_key.set_contents_from_string(bytes, 
+        file_key.set_contents_from_string(bytes,
             encrypt_key = self.context.config.get('S3_STORAGE_SSE', default=False),
             reduced_redundancy = self.context.config.get('S3_STORAGE_RRS', default=False)
         )
@@ -62,7 +56,7 @@ class Storage(BaseStorage):
         file_key=Key(self.storage)
         file_key.key = crypto_path
 
-        file_key.set_contents_from_string(self.context.server.security_key, 
+        file_key.set_contents_from_string(self.context.server.security_key,
             encrypt_key = self.context.config.get('S3_STORAGE_SSE', default=False),
             reduced_redundancy = self.context.config.get('S3_STORAGE_RRS', default=False)
         )
@@ -73,7 +67,7 @@ class Storage(BaseStorage):
         file_abspath = self.normalize_path(path)
 
         path = '%s.detectors.txt' % splitext(file_abspath)[0]
-        
+
         file_key=Key(self.storage)
         file_key.key = path
 
@@ -109,7 +103,7 @@ class Storage(BaseStorage):
     def get_detector_data(self, path):
         file_abspath = self.normalize_path(path)
         path = '%s.detectors.txt' % splitext(file_abspath)[0]
-        
+
         file_key = self.storage.get_key(path)
 
         if not file_key or self.is_expired(path):
@@ -157,5 +151,3 @@ class Storage(BaseStorage):
         local_dt = datetime.fromtimestamp(timestamp)
         assert utc_dt.resolution >= timedelta(microseconds=1)
         return local_dt.replace(microsecond=utc_dt.microsecond)
-
-

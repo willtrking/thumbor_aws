@@ -8,14 +8,13 @@ import os
 from thumbor.result_storages import BaseStorage
 from thumbor.utils import logger
 
-from boto.s3.connection import S3Connection
 from boto.s3.bucket import Bucket
 from boto.s3.key import Key
 from dateutil.parser import parse as parse_ts
 
-class Storage(BaseStorage):
+import thumbor_aws.connection
 
-    connection = None
+class Storage(BaseStorage):
 
     @property
     def is_auto_webp(self):
@@ -25,18 +24,9 @@ class Storage(BaseStorage):
         BaseStorage.__init__(self, context)
         self.storage = self.__get_s3_bucket()
 
-    def __get_s3_connection(self):
-        if self.__class__.connection is None:
-          self.__class__.connection = S3Connection(
-              self.context.config.AWS_ACCESS_KEY,
-              self.context.config.AWS_SECRET_KEY
-          )
-
-        return self.__class__.connection
-
     def __get_s3_bucket(self):
         return Bucket(
-            connection=self.__get_s3_connection(),
+            conn=thumbor_aws.connection.get_connection(context),
             name=self.context.config.RESULT_STORAGE_BUCKET
         )
 
@@ -45,7 +35,7 @@ class Storage(BaseStorage):
         file_key=Key(self.storage)
         file_key.key = file_abspath
 
-        file_key.set_contents_from_string(bytes, 
+        file_key.set_contents_from_string(bytes,
             encrypt_key = self.context.config.get('S3_STORAGE_SSE', default=False),
             reduced_redundancy = self.context.config.get('S3_STORAGE_RRS', default=False)
         )
@@ -82,5 +72,3 @@ class Storage(BaseStorage):
         local_dt = datetime.fromtimestamp(timestamp)
         assert utc_dt.resolution >= timedelta(microseconds=1)
         return local_dt.replace(microsecond=utc_dt.microsecond)
-
-
