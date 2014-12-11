@@ -1,11 +1,10 @@
 # coding: utf-8
 
-from boto.s3.connection import S3Connection
 from boto.s3.bucket import Bucket
 from boto.s3.key import Key
 import urllib2
 
-connection = None
+import thumbor_aws.connection
 
 def _get_bucket(url):
     """
@@ -30,18 +29,6 @@ def _validate_bucket(context,bucket):
     return False
 
 
-def _establish_connection(context_config):
-    conn = connection
-    if conn is None:
-        # Store connection not bucket
-        conn = S3Connection(
-            context_config.AWS_ACCESS_KEY,
-            context_config.AWS_SECRET_KEY
-        )
-
-    return conn
-
-
 def load(context, url, callback):
     url = urllib2.unquote(url)
     if context.config.S3_LOADER_BUCKET:
@@ -51,10 +38,8 @@ def load(context, url, callback):
         if not _validate_bucket(context, bucket):
             return callback(None)
 
-    conn = _establish_connection(context.config)
-
     bucket_loader = Bucket(
-        connection=conn,
+        connection=thumbor_aws.connection.get_connection(context),
         name=bucket
     )
 
