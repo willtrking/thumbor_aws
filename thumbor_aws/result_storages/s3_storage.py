@@ -75,7 +75,7 @@ class Storage(BaseStorage):
             logger.debug("[RESULT_STORAGE] s3 key not found at %s" % file_abspath)
             return None
 
-        return self.utc_to_local(parse_ts(key.last_modified))
+        return self.utc_to_local(parse_ts(file_key.last_modified))
 
     def utc_to_local(self,utc_dt):
         # get integer timestamp to avoid precision lost
