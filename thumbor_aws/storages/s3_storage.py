@@ -25,7 +25,7 @@ class Storage(BaseStorage):
 
     def __get_s3_bucket(self):
         return Bucket(
-            connection=thumbor_aws.connection.get_connection(context),
+            connection=thumbor_aws.connection.get_connection(self.context),
             name=self.context.config.STORAGE_BUCKET
         )
 
