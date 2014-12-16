@@ -66,6 +66,17 @@ class Storage(BaseStorage):
             #If our key is bad just say we're expired
             return True
 
+    def last_updated(self):
+        path = self.context.request.url
+        file_abspath = self.normalize_path(path)
+        file_key = self.storage.get_key(file_abspath)
+
+        if not file_key or self.is_expired(file_key):
+            logger.debug("[RESULT_STORAGE] s3 key not found at %s" % file_abspath)
+            return None
+
+        return self.utc_to_local(parse_ts(key.last_modified))
+
     def utc_to_local(self,utc_dt):
         # get integer timestamp to avoid precision lost
         timestamp = calendar.timegm(utc_dt.timetuple())
