@@ -5,6 +5,7 @@ from boto.s3.key import Key
 import urllib2
 
 import thumbor_aws.connection
+import thumbor.loaders.http_loader as http_loader
 
 def _get_bucket(url):
     """
@@ -30,7 +31,12 @@ def _validate_bucket(context,bucket):
 
 
 def load(context, url, callback):
+    if (context.config.AWS_ENABLE_HTTP_LOADER and 
+      'http' in url):
+        return http_loader.load(context, url, callback)
+      
     url = urllib2.unquote(url)
+    
     if context.config.S3_LOADER_BUCKET:
         bucket = context.config.S3_LOADER_BUCKET
     else:
