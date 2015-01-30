@@ -35,3 +35,10 @@ Additional Configuration values used:
     # Use Role-based connection
     # http://docs.aws.amazon.com/IAM/latest/UserGuide/roles-assume-role.html
     AWS_ROLE_BASED_CONNECTION = True or False (Default: False)
+
+
+    #Optional config value to enable the HTTP loader
+    #This would allow you to load watermarks in over your images dynamically through a URI
+    #E.g. 
+    #http://your-thumbor.com/unsafe/filters:watermark(http://example.com/watermark.png,0,0,50)/s3_bucket/photo.jpg
+    AWS_ENABLE_HTTP_LOADER = True or False (Default: False)

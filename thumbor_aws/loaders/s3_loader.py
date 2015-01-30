@@ -31,8 +31,10 @@ def _validate_bucket(context,bucket):
 
 
 def load(context, url, callback):
-    if (context.config.AWS_ENABLE_HTTP_LOADER and 
-      'http' in url):
+    
+    enable_http_loader = context.config.get('AWS_ENABLE_HTTP_LOADER', default=False)
+
+    if enable_http_loader and 'http' in url:
         return http_loader.load(context, url, callback)
       
     url = urllib2.unquote(url)
